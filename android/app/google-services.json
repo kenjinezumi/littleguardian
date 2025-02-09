@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "21672569998",
+    "project_id": "littleguardian-35630",
+    "storage_bucket": "littleguardian-35630.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:21672569998:android:dfb7c6448e3dd3ae73addf",
+        "android_client_info": {
+          "package_name": "com.example.littleguardian"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3nFj_Y1WC1XJZNjmw3M6WmTzcTZPeq_8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
