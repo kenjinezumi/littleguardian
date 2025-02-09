@@ -1,5 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
+// lib/providers/auth_provider.dart
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_user.dart';
 
@@ -19,30 +20,34 @@ class AuthProvider extends ChangeNotifier {
     _auth.authStateChanges().listen((firebaseUser) async {
       if (firebaseUser == null) {
         _user = null;
-        _isLoading = false;
-        notifyListeners();
       } else {
-        // Fetch Firestore user doc
-        final doc = await FirebaseFirestore.instance.collection('users').doc(firebaseUser.uid).get();
+        // Fetch user doc
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(firebaseUser.uid)
+            .get();
         if (doc.exists) {
           _user = AppUser.fromMap(doc.id, doc.data() as Map<String, dynamic>);
         }
-        _isLoading = false;
-        notifyListeners();
       }
+      _isLoading = false;
+      notifyListeners();
     });
   }
 
   Future<String?> register(String email, String password, String role) async {
     try {
-      final cred = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      final cred = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
       final uid = cred.user!.uid;
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'email': email,
         'role': role,
-        'createdAt': DateTime.now().toIso8601String()
+        'createdAt': DateTime.now().toIso8601String(),
       });
-      return null;
+      return null; // success
     } on FirebaseAuthException catch (e) {
       return e.message;
     }

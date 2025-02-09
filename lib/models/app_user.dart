@@ -1,7 +1,8 @@
+// lib/models/app_user.dart
 class AppUser {
   final String uid;
   final String email;
-  final String role; 
+  final String role; // 'parent' or 'babysitter'
 
   AppUser({
     required this.uid,
