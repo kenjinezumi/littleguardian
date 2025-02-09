@@ -1,0 +1,5 @@
+package com.example.littleguardian
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity: FlutterActivity()
