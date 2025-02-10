@@ -4,7 +4,7 @@ import 'app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); // Initialize default Firebase app
+  await Firebase.initializeApp(); 
   runApp(const LittleGuardianApp());
 }
 

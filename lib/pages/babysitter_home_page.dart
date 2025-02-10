@@ -45,7 +45,7 @@ class _BabysitterHomePageState extends State<BabysitterHomePage> {
               await auth.logout();
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (_) => const LoginPage()),
+                MaterialPageRoute(builder: (_) =>  LoginPage()),
                 (route) => false,
               );
             },

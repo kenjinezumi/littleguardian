@@ -46,7 +46,7 @@ class _ParentHomePageState extends State<ParentHomePage> {
               await auth.logout();
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (_) => const LoginPage()),
+                MaterialPageRoute(builder: (_) =>  LoginPage()),
                 (route) => false,
               );
             },
