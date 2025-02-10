@@ -5,7 +5,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/booking_provider.dart';
 import '../../models/booking.dart';
 import 'booking_creation_page.dart';
-import '../login_page.dart';
+import './login_page.dart';
 import 'rating_page.dart';
 
 class ParentHomePage extends StatefulWidget {

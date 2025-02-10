@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/booking_provider.dart';
 import '../../models/booking.dart';
-import '../login_page.dart';
+import './login_page.dart';
 import 'rating_page.dart';
 
 class BabysitterHomePage extends StatefulWidget {

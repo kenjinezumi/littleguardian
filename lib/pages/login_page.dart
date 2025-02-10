@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
 import 'signup_page.dart';
-import '../parent_home_page.dart';
-import '../babysitter_home_page.dart';
+import './parent_home_page.dart';
+import './babysitter_home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
