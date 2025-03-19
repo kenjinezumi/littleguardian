@@ -1,13 +1,7 @@
-// lib/pages/parent/parent_home_page.dart
+// lib/pages/parent_home_page.dart
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart' show MyAuthProvider;
-import '../../providers/job_provider.dart';
-import '../../providers/booking_provider.dart';
-import '../../models/job_post.dart';
-import '../../models/booking.dart';
-import 'job_creation_page.dart';
+import '../../providers/auth_provider.dart';
 
 class ParentHomePage extends StatefulWidget {
   const ParentHomePage({Key? key}) : super(key: key);
@@ -19,129 +13,123 @@ class ParentHomePage extends StatefulWidget {
 class _ParentHomePageState extends State<ParentHomePage> {
   int _selectedIndex = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    final jobProv = Provider.of<JobProvider>(context, listen: false);
-    final bookingProv = Provider.of<BookingProvider>(context, listen: false);
-
-    await jobProv.loadParentJobs(user.uid);
-    await bookingProv.loadBookings(user.uid, 'parent');
-  }
+  final _pages = [
+    const _MyJobsPage(),
+    const _BookingsPage(),
+    const _ParentProfilePage(),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<MyAuthProvider>(context, listen: false);
-    final jobProv = Provider.of<JobProvider>(context);
-    final bookingProv = Provider.of<BookingProvider>(context);
-
-    final jobs = jobProv.myPostedJobs;
-    final bookings = bookingProv.myBookings;
-
-    final pages = [
-      _jobsTab(jobs),
-      _bookingsTab(bookings),
-      _profileTab(auth),
-    ];
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Parent Home"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await auth.logout();
-              if (!mounted) return;
-              Navigator.pushReplacementNamed(context, '/login');
-            },
-          )
-        ],
-      ),
-      body: pages[_selectedIndex],
+      appBar: AppBar(title: const Text("Parent Home")),
+      body: _pages[_selectedIndex],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
-        onDestinationSelected: (idx) => setState(() => _selectedIndex = idx),
+        onDestinationSelected: (idx) {
+          setState(() => _selectedIndex = idx);
+        },
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.list), label: "Jobs"),
+          NavigationDestination(icon: Icon(Icons.list), label: "My Jobs"),
           NavigationDestination(icon: Icon(Icons.calendar_month), label: "Bookings"),
           NavigationDestination(icon: Icon(Icons.person), label: "Profile"),
         ],
       ),
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
-              child: const Icon(Icons.add),
               onPressed: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const JobCreationPage()));
+                // Fake create job
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Create a job (TODO)")),
+                );
               },
+              child: const Icon(Icons.add),
             )
           : null,
     );
   }
+}
 
-  Widget _jobsTab(List<JobPost> jobs) {
-    if (jobs.isEmpty) {
-      return const Center(child: Text("No jobs posted yet."));
+class _MyJobsPage extends StatelessWidget {
+  const _MyJobsPage();
+
+  @override
+  Widget build(BuildContext context) {
+    // Fake data
+    final myJobs = [
+      {"title": "Saturday Night Sitter", "time": "7PM - 11PM"},
+      {"title": "Morning Helper", "time": "8AM - 12PM"},
+    ];
+    if (myJobs.isEmpty) {
+      return const Center(child: Text("No posted jobs."));
     }
     return ListView.builder(
-      itemCount: jobs.length,
+      itemCount: myJobs.length,
       itemBuilder: (ctx, i) {
-        final job = jobs[i];
+        final job = myJobs[i];
         return Card(
+          margin: const EdgeInsets.all(12),
           child: ListTile(
-            title: Text(job.title),
-            subtitle: Text("${job.startTime} - ${job.endTime}"),
+            title: Text(job["title"] ?? ""),
+            subtitle: Text(job["time"] ?? ""),
           ),
         );
       },
     );
   }
+}
 
-  Widget _bookingsTab(List<Booking> bookings) {
-    if (bookings.isEmpty) {
+class _BookingsPage extends StatelessWidget {
+  const _BookingsPage();
+
+  @override
+  Widget build(BuildContext context) {
+    // Fake data
+    final myBookings = [
+      {"babysitter": "Jane S.", "time": "Tomorrow 6PM - 10PM"},
+    ];
+    if (myBookings.isEmpty) {
       return const Center(child: Text("No bookings yet."));
     }
     return ListView.builder(
-      itemCount: bookings.length,
+      itemCount: myBookings.length,
       itemBuilder: (ctx, i) {
-        final b = bookings[i];
+        final b = myBookings[i];
         return Card(
+          margin: const EdgeInsets.all(12),
           child: ListTile(
-            title: Text("Babysitter: ${b.babysitterId}"),
-            subtitle: Text("From: ${b.startTime} to ${b.endTime}\nStatus: ${b.status}"),
+            title: Text("Babysitter: ${b["babysitter"]}"),
+            subtitle: Text(b["time"] ?? ""),
           ),
         );
       },
     );
   }
+}
 
-  Widget _profileTab(MyAuthProvider auth) {
-    final user = auth.user;
-    return Center(
+class _ParentProfilePage extends StatelessWidget {
+  const _ParentProfilePage();
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<MyAuthProvider>();
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text("Logged in as: ${user?.email}"),
-          Text("Role: ${user?.role}"),
+          Text("Logged in as: ${auth.email}",
+              style: Theme.of(context).textTheme.titleMedium),
+          Text("Role: ${auth.role}"),
           const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              // TODO: Navigate to parent's profile details
+          ElevatedButton.icon(
+            icon: const Icon(Icons.logout),
+            label: const Text("Logout"),
+            onPressed: () async {
+              await context.read<MyAuthProvider>().fakeLogout();
+              if (context.mounted) {
+                Navigator.pushReplacementNamed(context, '/login');
+              }
             },
-            child: const Text("My Profile"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // TODO: Manage children info
-            },
-            child: const Text("Family/Children Details"),
           ),
         ],
       ),

@@ -1,8 +1,9 @@
 // lib/pages/babysitter_home_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/job_provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/job_provider.dart';
+import '../models/job_post.dart';
 
 class BabysitterHomePage extends StatefulWidget {
   const BabysitterHomePage({Key? key}) : super(key: key);
@@ -13,48 +14,44 @@ class BabysitterHomePage extends StatefulWidget {
 
 class _BabysitterHomePageState extends State<BabysitterHomePage> {
   int _selectedIndex = 0;
-  List<Map<String, String>> _availableJobs = [];
-  final _pages = <Widget>[];
+  List<JobPost> _availableJobs = [];
+  late List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
+    _pages = [
+      JobsPage(availableJobs: _availableJobs),
+      const MyBookingsPage(),
+      const BabysitterProfilePage(),
+    ];
     _loadJobs();
-    _pages.addAll([
-      _JobsPage(availableJobs: _availableJobs),
-      const _MyBookingsPage(),
-      const _BabysitterProfilePage(),
-    ]);
   }
 
   Future<void> _loadJobs() async {
     final jobProv = context.read<JobProvider>();
-    final jobs = await jobProv.fetchAvailableJobs();
+    final jobs = await jobProv.fetchAvailableJobs(); // returns List<JobPost>
     setState(() {
       _availableJobs = jobs;
-      // Refresh the pages list:
-      _pages
-        ..clear()
-        ..addAll([
-          _JobsPage(availableJobs: _availableJobs),
-          const _MyBookingsPage(),
-          const _BabysitterProfilePage(),
-        ]);
+      // Update the pages with new data
+      _pages = [
+        JobsPage(availableJobs: _availableJobs),
+        const MyBookingsPage(),
+        const BabysitterProfilePage(),
+      ];
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Babysitter Home"),
-      ),
-      body: _pages.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : _pages[_selectedIndex],
+      appBar: AppBar(title: const Text("Babysitter Home")),
+      body: _pages[_selectedIndex],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
-        onDestinationSelected: (idx) => setState(() => _selectedIndex = idx),
+        onDestinationSelected: (idx) {
+          setState(() => _selectedIndex = idx);
+        },
         destinations: const [
           NavigationDestination(icon: Icon(Icons.search), label: "Jobs"),
           NavigationDestination(icon: Icon(Icons.calendar_month), label: "Bookings"),
@@ -65,9 +62,9 @@ class _BabysitterHomePageState extends State<BabysitterHomePage> {
   }
 }
 
-class _JobsPage extends StatelessWidget {
-  final List<Map<String, String>> availableJobs;
-  const _JobsPage({required this.availableJobs});
+class JobsPage extends StatelessWidget {
+  final List<JobPost> availableJobs;
+  const JobsPage({Key? key, required this.availableJobs}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -81,13 +78,12 @@ class _JobsPage extends StatelessWidget {
         return Card(
           margin: const EdgeInsets.all(12),
           child: ListTile(
-            title: Text(job["title"] ?? ""),
-            subtitle: Text("${job["time"]} • ${job["rate"]}"),
+            title: Text(job.title),
+            subtitle: Text(job.description),
             trailing: ElevatedButton(
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text("Applied to ${job["title"] ?? "a job"}")),
+                  SnackBar(content: Text("Applied to ${job.title}")),
                 );
               },
               child: const Text("Apply"),
@@ -99,8 +95,8 @@ class _JobsPage extends StatelessWidget {
   }
 }
 
-class _MyBookingsPage extends StatelessWidget {
-  const _MyBookingsPage();
+class MyBookingsPage extends StatelessWidget {
+  const MyBookingsPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -127,8 +123,8 @@ class _MyBookingsPage extends StatelessWidget {
   }
 }
 
-class _BabysitterProfilePage extends StatelessWidget {
-  const _BabysitterProfilePage();
+class BabysitterProfilePage extends StatelessWidget {
+  const BabysitterProfilePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

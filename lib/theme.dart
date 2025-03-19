@@ -2,47 +2,87 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Light color scheme with pastel teal as primary
-  static final ColorScheme _colorScheme = ColorScheme.fromSeed(
-    seedColor: const Color(0xFF65C8BA), // pastel teal
-    primary: const Color(0xFF65C8BA),
-    secondary: const Color(0xFFFEE8B0), // pastel peach/yellow
-    surface: Colors.white,
-    background: Color(0xFFF5F5F5),
-    brightness: Brightness.light,
-  );
+  static ThemeData get lightTheme {
+    // Create a custom color scheme or generate from brand color
+    const seedColor = Colors.teal;
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: seedColor,
+      brightness: Brightness.light,
+    );
 
-  static ThemeData lightTheme = ThemeData(
-    colorScheme: _colorScheme,
-    useMaterial3: true,
-    scaffoldBackgroundColor: _colorScheme.background,
-    textTheme: const TextTheme(
-      displaySmall: TextStyle(fontWeight: FontWeight.bold),
-      headlineSmall: TextStyle(fontWeight: FontWeight.bold),
-      titleMedium: TextStyle(fontWeight: FontWeight.w600),
-      bodyMedium: TextStyle(fontSize: 14),
-    ),
-    // Example ElevatedButton style
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ButtonStyle(
-        shape: MaterialStateProperty.all(
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return ThemeData(
+      colorScheme: colorScheme,
+      useMaterial3: true,
+      scaffoldBackgroundColor: colorScheme.background,
+      textTheme: _textTheme(colorScheme),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: const TextStyle(fontSize: 16),
         ),
-        padding: MaterialStateProperty.all(const EdgeInsets.symmetric(vertical: 12, horizontal: 20)),
       ),
-    ),
-    // Example OutlinedTextField style
-    inputDecorationTheme: InputDecorationTheme(
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+      cardTheme: CardTheme(
+        elevation: 3,
+        shadowColor: colorScheme.shadow,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
       ),
-      filled: true,
-      fillColor: Colors.white,
-    ),
-    // NavigationBar theme for bottom nav
-    navigationBarTheme: const NavigationBarThemeData(
-      height: 60,
-      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-    ),
-  );
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: colorScheme.surfaceVariant.withOpacity(0.2),
+        labelStyle: TextStyle(color: colorScheme.onSurface),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: colorScheme.outline.withOpacity(0.3)),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: colorScheme.primary),
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: colorScheme.surface,
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: TextStyle(
+          color: colorScheme.onSurface,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        surfaceTintColor: colorScheme.surface,
+        backgroundColor: colorScheme.surface.withOpacity(0.9),
+        indicatorColor: colorScheme.primaryContainer,
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+        iconTheme: MaterialStateProperty.all(
+          IconThemeData(color: colorScheme.onSurfaceVariant),
+        ),
+      ),
+    );
+  }
+
+  static TextTheme _textTheme(ColorScheme colorScheme) {
+    return TextTheme(
+      displayLarge: TextStyle(
+        color: colorScheme.onBackground,
+        fontWeight: FontWeight.bold,
+      ),
+      headlineSmall: TextStyle(
+        color: colorScheme.onBackground,
+        fontWeight: FontWeight.bold,
+      ),
+      bodyMedium: TextStyle(
+        color: colorScheme.onBackground,
+      ),
+      labelLarge: TextStyle(
+        color: colorScheme.onPrimary,
+      ),
+    );
+  }
 }

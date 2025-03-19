@@ -1,37 +1,63 @@
-// splash_screen.dart
+// lib/pages/splash_screen.dart
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:lottie/lottie.dart';
+import 'dart:async';
 
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
   @override
-  _SplashScreenState createState() => _SplashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  Timer? _timer;
+
   @override
   void initState() {
     super.initState();
-    // Check auth state after a short delay to allow splash animation to be seen
-    Future.delayed(Duration(seconds: 2), () {
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        // Not logged in, go to login
-        Navigator.pushReplacementNamed(context, '/login');
-      } else {
-        // Logged in, go to home
-        Navigator.pushReplacementNamed(context, '/home');
-      }
+
+    // Animate from 0 -> 1 over 1 second
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOutCubic,
+    );
+    _controller.forward();
+
+    // Navigate after 2.5 seconds
+    _timer = Timer(const Duration(milliseconds: 2500), () {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed('/login');
     });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Lottie.asset(
-          'assets/splash_anim.json', 
-          width: 200, height: 200, fit: BoxFit.contain),
+      body: FadeTransition(
+        opacity: _animation,
+        child: Center(
+          child: Text(
+            "LittleGuardian",
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ),
       ),
     );
   }
