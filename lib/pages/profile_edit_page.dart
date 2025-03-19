@@ -42,9 +42,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     super.dispose();
   }
 
-  /// Called by either the top-right "Edit" icon or the bottom "Save" button
   void _saveProfile() {
-    // 1) Create an updated version from the text fields
+    // Rebuild a final profile object
     final updated = widget.profile.copyWith(
       name: _nameCtrl.text.trim(),
       phone: _phoneCtrl.text.trim(),
@@ -53,7 +52,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       avatarUrl: _avatarCtrl.text.trim(),
     );
 
-    // 2) Because role isn't in copyWith, we build a final profile
+    // Overwrite the role
     final finalProfile = UserProfile(
       email: updated.email,
       role: _role,
@@ -64,7 +63,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       avatarUrl: updated.avatarUrl,
     );
 
-    // 3) Convert finalProfile to the arguments for updateProfile
+    // Now we pass userId = finalProfile.email, plus the data map
     final userId = finalProfile.email; 
     final data = {
       'role': finalProfile.role,
@@ -75,20 +74,17 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       'avatarUrl': finalProfile.avatarUrl,
     };
 
-    // 4) Call the provider's updateProfile(...) with userId & data
     context.read<ProfileProvider>().updateProfile(
       userId: userId,
       data: data,
     );
 
-    // 5) Pop back
     Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // AppBar with "Edit" icon
       appBar: AppBar(
         title: const Text("Edit Profile"),
         actions: [
@@ -113,7 +109,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                 labelText: "Avatar URL",
                 prefixIcon: Icon(Icons.image),
               ),
-              onChanged: (_) => setState(() {}), // to refresh avatar
+              onChanged: (val) => setState(() {}), // re-draw
             ),
             const SizedBox(height: 24),
             _buildTextField(_nameCtrl, "Name", Icons.person),
@@ -126,8 +122,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
             const SizedBox(height: 16),
             _buildTextField(_bioCtrl, "Bio", Icons.info, maxLines: 3),
             const SizedBox(height: 24),
-
-            // Bottom "Save" button
             ElevatedButton.icon(
               icon: const Icon(Icons.save),
               label: const Text("Save"),

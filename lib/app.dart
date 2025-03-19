@@ -13,6 +13,7 @@ import 'pages/login_page.dart';
 import 'pages/parent/parent_home_page.dart';
 import 'pages/babysitter/babysitter_home_page.dart';
 import 'pages/booking_details_page.dart';
+import 'providers/profile_provider.dart'; 
 
 class LittleGuardianApp extends StatelessWidget {
   const LittleGuardianApp({Key? key}) : super(key: key);
@@ -24,6 +25,7 @@ class LittleGuardianApp extends StatelessWidget {
         ChangeNotifierProvider<MyAuthProvider>(create: (_) => MyAuthProvider()),
         ChangeNotifierProvider<JobProvider>(create: (_) => JobProvider()),
         ChangeNotifierProvider<BookingProvider>(create: (_) => BookingProvider()),
+        ChangeNotifierProvider<ProfileProvider>(create: (_) => ProfileProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

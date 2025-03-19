@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/job_provider.dart';
 import '../../providers/booking_provider.dart';
+import '../../models/user_profile.dart'; // <-- if using a local model
+import '../profile_edit_page.dart';       // <-- Import the edit page route
 
 class BabysitterHomePage extends StatefulWidget {
   const BabysitterHomePage({Key? key}) : super(key: key);
@@ -22,7 +24,7 @@ class _BabysitterHomePageState extends State<BabysitterHomePage> {
     _pages = [
       const BabysitterJobsPage(),
       const BabysitterBookingsPage(),
-      const BabysitterProfilePage(),
+      const BabysitterProfilePage(), // The profile tab
     ];
   }
 
@@ -92,29 +94,68 @@ class BabysitterBookingsPage extends StatelessWidget {
   }
 }
 
+// The "Profile" tab for babysitter
 class BabysitterProfilePage extends StatelessWidget {
   const BabysitterProfilePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<MyAuthProvider>();
+
+    // For demonstration, we build a sample user profile.
+    // In a real app, you might fetch from Firestore or ProfileProvider.
+    final userProfile = UserProfile(
+      email: auth.email,
+      role: auth.role,
+      name: "Sitter's Name",
+      phone: "555-9999",
+      address: "456 Oak Lane",
+      bio: "Experienced babysitter with CPR cert!",
+      avatarUrl: "https://i.pravatar.cc/150?u=${auth.email}",
+    );
+
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text("Logged in as: ${auth.email}"),
-          Text("Role: ${auth.role}"),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () async {
-              await context.read<MyAuthProvider>().fakeLogout();
-              if (context.mounted) {
-                Navigator.pushReplacementNamed(context, '/login');
-              }
-            },
-            child: const Text("Logout"),
-          ),
-        ],
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: Column(
+          children: [
+            Text("Logged in as: ${auth.email}"),
+            Text("Role: ${auth.role}"),
+            const SizedBox(height: 20),
+
+            // Display some info from userProfile
+            Text("Name: ${userProfile.name}"),
+            Text("Phone: ${userProfile.phone}"),
+            Text("Address: ${userProfile.address}"),
+            Text("Bio: ${userProfile.bio}"),
+            const SizedBox(height: 20),
+
+            // "Edit Profile" button
+            ElevatedButton(
+              onPressed: () {
+                // Navigate to ProfileEditPage with userProfile
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProfileEditPage(profile: userProfile),
+                  ),
+                );
+              },
+              child: const Text("Edit Profile"),
+            ),
+
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () async {
+                await context.read<MyAuthProvider>().fakeLogout();
+                if (context.mounted) {
+                  Navigator.pushReplacementNamed(context, '/login');
+                }
+              },
+              child: const Text("Logout"),
+            ),
+          ],
+        ),
       ),
     );
   }
