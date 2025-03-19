@@ -1,8 +1,7 @@
-// lib/pages/babysitter_home_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/job_provider.dart';
+// Remove import to job_post.dart if you used it
 
 class BabysitterHomePage extends StatefulWidget {
   const BabysitterHomePage({Key? key}) : super(key: key);
@@ -13,45 +12,40 @@ class BabysitterHomePage extends StatefulWidget {
 
 class _BabysitterHomePageState extends State<BabysitterHomePage> {
   int _selectedIndex = 0;
+  // No longer a List<JobPost>, but a List of maps
   List<Map<String, String>> _availableJobs = [];
-  final _pages = <Widget>[];
+  late List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
+    _pages = [
+      JobsPage(availableJobs: _availableJobs),
+      const MyBookingsPage(),
+      const BabysitterProfilePage(),
+    ];
     _loadJobs();
-    _pages.addAll([
-      _JobsPage(availableJobs: _availableJobs),
-      const _MyBookingsPage(),
-      const _BabysitterProfilePage(),
-    ]);
   }
 
   Future<void> _loadJobs() async {
     final jobProv = context.read<JobProvider>();
-    final jobs = await jobProv.fetchAvailableJobs();
+    final jobs = await jobProv.fetchAvailableJobs(); // returns List<Map<String, String>>
     setState(() {
+      // Now both sides match: jobs is a List<Map<String, String>>
       _availableJobs = jobs;
-      // Refresh the pages list:
-      _pages
-        ..clear()
-        ..addAll([
-          _JobsPage(availableJobs: _availableJobs),
-          const _MyBookingsPage(),
-          const _BabysitterProfilePage(),
-        ]);
+      _pages = [
+        JobsPage(availableJobs: _availableJobs),
+        const MyBookingsPage(),
+        const BabysitterProfilePage(),
+      ];
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Babysitter Home"),
-      ),
-      body: _pages.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : _pages[_selectedIndex],
+      appBar: AppBar(title: const Text("Babysitter Home")),
+      body: _pages[_selectedIndex],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (idx) => setState(() => _selectedIndex = idx),
@@ -65,9 +59,9 @@ class _BabysitterHomePageState extends State<BabysitterHomePage> {
   }
 }
 
-class _JobsPage extends StatelessWidget {
+class JobsPage extends StatelessWidget {
   final List<Map<String, String>> availableJobs;
-  const _JobsPage({required this.availableJobs});
+  const JobsPage({Key? key, required this.availableJobs}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -78,16 +72,18 @@ class _JobsPage extends StatelessWidget {
       itemCount: availableJobs.length,
       itemBuilder: (ctx, i) {
         final job = availableJobs[i];
+        final title = job["title"] ?? "Untitled";
+        final desc = job["description"] ?? "";
+        final rate = job["rate"] ?? "";
         return Card(
           margin: const EdgeInsets.all(12),
           child: ListTile(
-            title: Text(job["title"] ?? ""),
-            subtitle: Text("${job["time"]} • ${job["rate"]}"),
+            title: Text(title),
+            subtitle: Text("$desc • $rate"),
             trailing: ElevatedButton(
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text("Applied to ${job["title"] ?? "a job"}")),
+                  SnackBar(content: Text("Applied to $title")),
                 );
               },
               child: const Text("Apply"),
@@ -99,8 +95,8 @@ class _JobsPage extends StatelessWidget {
   }
 }
 
-class _MyBookingsPage extends StatelessWidget {
-  const _MyBookingsPage();
+class MyBookingsPage extends StatelessWidget {
+  const MyBookingsPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -127,32 +123,12 @@ class _MyBookingsPage extends StatelessWidget {
   }
 }
 
-class _BabysitterProfilePage extends StatelessWidget {
-  const _BabysitterProfilePage();
+class BabysitterProfilePage extends StatelessWidget {
+  const BabysitterProfilePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<MyAuthProvider>();
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          Text("Logged in as: ${auth.email}",
-              style: Theme.of(context).textTheme.titleMedium),
-          Text("Role: ${auth.role}"),
-          const SizedBox(height: 20),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.logout),
-            label: const Text("Logout"),
-            onPressed: () async {
-              await context.read<MyAuthProvider>().fakeLogout();
-              if (context.mounted) {
-                Navigator.pushReplacementNamed(context, '/login');
-              }
-            },
-          ),
-        ],
-      ),
-    );
+    // show babysitter's profile or usage
+    return const Center(child: Text("Babysitter Profile (TODO)"));
   }
 }

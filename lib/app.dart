@@ -10,7 +10,7 @@ import 'providers/job_provider.dart';
 import 'pages/splash_screen.dart';
 import 'pages/login_page.dart';
 import 'pages/parent/parent_home_page.dart';
-import 'pages/babysitter_home_page.dart';
+import 'pages/babysitter/babysitter_home_page.dart';
 
 class LittleGuardianApp extends StatelessWidget {
   const LittleGuardianApp({Key? key}) : super(key: key);

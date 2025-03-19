@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/job_provider.dart';
+import 'job_creation_page.dart';
 
 class ParentHomePage extends StatefulWidget {
   const ParentHomePage({Key? key}) : super(key: key);
@@ -12,12 +14,17 @@ class ParentHomePage extends StatefulWidget {
 
 class _ParentHomePageState extends State<ParentHomePage> {
   int _selectedIndex = 0;
+  late final List<Widget> _pages;
 
-  final _pages = [
-    const _MyJobsPage(),
-    const _BookingsPage(),
-    const _ParentProfilePage(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      const MyJobsPage(),
+      const BookingsPage(),
+      const ParentProfilePage(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,42 +43,48 @@ class _ParentHomePageState extends State<ParentHomePage> {
         ],
       ),
       floatingActionButton: _selectedIndex == 0
-          ? FloatingActionButton(
+          ? FloatingActionButton.extended(
+              icon: const Icon(Icons.add),
+              label: const Text("New Job"),
               onPressed: () {
-                // Fake create job
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Create a job (TODO)")),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const JobCreationPage()),
                 );
               },
-              child: const Icon(Icons.add),
             )
           : null,
     );
   }
 }
 
-class _MyJobsPage extends StatelessWidget {
-  const _MyJobsPage();
+// MyJobsPage listens for changes from JobProvider
+class MyJobsPage extends StatelessWidget {
+  const MyJobsPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Fake data
-    final myJobs = [
-      {"title": "Saturday Night Sitter", "time": "7PM - 11PM"},
-      {"title": "Morning Helper", "time": "8AM - 12PM"},
-    ];
+    final auth = context.watch<MyAuthProvider>();
+    final jobProv = context.watch<JobProvider>();
+
+    // fetch parent's jobs based on parent's email
+    final myJobs = jobProv.fetchParentJobs(auth.email);
+
     if (myJobs.isEmpty) {
-      return const Center(child: Text("No posted jobs."));
+      return const Center(child: Text("No posted jobs yet."));
     }
     return ListView.builder(
       itemCount: myJobs.length,
       itemBuilder: (ctx, i) {
         final job = myJobs[i];
+        final title = job["title"] ?? "Untitled";
+        final desc = job["description"] ?? "";
+        final rate = job["rate"] ?? "";
         return Card(
           margin: const EdgeInsets.all(12),
           child: ListTile(
-            title: Text(job["title"] ?? ""),
-            subtitle: Text(job["time"] ?? ""),
+            title: Text(title),
+            subtitle: Text("$desc • $rate"),
           ),
         );
       },
@@ -79,22 +92,22 @@ class _MyJobsPage extends StatelessWidget {
   }
 }
 
-class _BookingsPage extends StatelessWidget {
-  const _BookingsPage();
+class BookingsPage extends StatelessWidget {
+  const BookingsPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     // Fake data
-    final myBookings = [
+    final bookings = [
       {"babysitter": "Jane S.", "time": "Tomorrow 6PM - 10PM"},
     ];
-    if (myBookings.isEmpty) {
+    if (bookings.isEmpty) {
       return const Center(child: Text("No bookings yet."));
     }
     return ListView.builder(
-      itemCount: myBookings.length,
+      itemCount: bookings.length,
       itemBuilder: (ctx, i) {
-        final b = myBookings[i];
+        final b = bookings[i];
         return Card(
           margin: const EdgeInsets.all(12),
           child: ListTile(
@@ -107,8 +120,8 @@ class _BookingsPage extends StatelessWidget {
   }
 }
 
-class _ParentProfilePage extends StatelessWidget {
-  const _ParentProfilePage();
+class ParentProfilePage extends StatelessWidget {
+  const ParentProfilePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
