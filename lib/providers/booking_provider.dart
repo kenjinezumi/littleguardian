@@ -1,51 +1,97 @@
 // lib/providers/booking_provider.dart
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/booking.dart';
 
 class BookingProvider extends ChangeNotifier {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  /// In-memory list of all bookings, each as a Map.
+  /// Example fields:
+  /// {
+  ///   "bookingId": "b123",
+  ///   "parentEmail": "parentA@example.com",
+  ///   "babysitterEmail": "sitter1@example.com",
+  ///   "jobTitle": "Weekend babysitting",
+  ///   "startTime": "2023-08-20 18:00",
+  ///   "endTime": "2023-08-20 22:00",
+  ///   "status": "confirmed"
+  /// }
+  ///
+  /// Add more to simulate dev/test scenarios.
+  final List<Map<String, String>> _allBookings = [
+    {
+      "bookingId": "bk1",
+      "parentEmail": "parentA@example.com",
+      "babysitterEmail": "sitter1@example.com",
+      "jobTitle": "Saturday Night Out",
+      "startTime": "2023-09-01 19:00",
+      "endTime": "2023-09-01 23:00",
+      "status": "confirmed",
+    },
+    {
+      "bookingId": "bk2",
+      "parentEmail": "parentA@example.com",
+      "babysitterEmail": "sitter2@example.com",
+      "jobTitle": "Morning Helper",
+      "startTime": "2023-09-02 08:00",
+      "endTime": "2023-09-02 12:00",
+      "status": "completed",
+    },
+    {
+      "bookingId": "bk3",
+      "parentEmail": "parentB@example.com",
+      "babysitterEmail": "sitter1@example.com",
+      "jobTitle": "Evening Sitter Needed",
+      "startTime": "2023-09-03 18:00",
+      "endTime": "2023-09-03 22:00",
+      "status": "confirmed",
+    },
+    {
+      "bookingId": "bk4",
+      "parentEmail": "parentB@example.com",
+      "babysitterEmail": "sitter2@example.com",
+      "jobTitle": "Full Day Sitter",
+      "startTime": "2023-09-04 09:00",
+      "endTime": "2023-09-04 17:00",
+      "status": "requested",
+    },
+    {
+      "bookingId": "bk5",
+      "parentEmail": "parentA@example.com",
+      "babysitterEmail": "sitter1@example.com",
+      "jobTitle": "Late Night Event",
+      "startTime": "2023-09-05 22:00",
+      "endTime": "2023-09-06 02:00",
+      "status": "canceled",
+    },
+    {
+      "bookingId": "bk6",
+      "parentEmail": "parentB@example.com",
+      "babysitterEmail": "sitter1@example.com",
+      "jobTitle": "Sunday Afternoon",
+      "startTime": "2023-09-10 12:00",
+      "endTime": "2023-09-10 16:00",
+      "status": "completed",
+    },
+  ];
 
-  bool _loading = false;
-  bool get loading => _loading;
-
-  List<Booking> _myBookings = [];
-  List<Booking> get myBookings => _myBookings;
-
-  Future<void> loadBookings(String userId, String role) async {
-    _loading = true;
-    notifyListeners();
-    QuerySnapshot snapshot;
-    if (role == 'parent') {
-      snapshot = await _db
-          .collection('bookings')
-          .where('parentId', isEqualTo: userId)
-          .get();
-    } else {
-      // babysitter
-      snapshot = await _db
-          .collection('bookings')
-          .where('babysitterId', isEqualTo: userId)
-          .get();
-    }
-    _myBookings = snapshot.docs.map((doc) {
-      return Booking.fromMap(doc.id, doc.data() as Map<String, dynamic>);
-    }).toList();
-    _loading = false;
-    notifyListeners();
+  /// Return all bookings that match the parent's email
+  List<Map<String, String>> fetchParentBookings(String parentEmail) {
+    return _allBookings
+        .where((b) => b["parentEmail"] == parentEmail)
+        .toList();
   }
 
-  Future<void> createBooking(Booking booking) async {
-    await _db
-        .collection('bookings')
-        .doc(booking.bookingId)
-        .set(booking.toMap());
+  /// Return all bookings that match the babysitter's email
+  List<Map<String, String>> fetchBabysitterBookings(String sitterEmail) {
+    return _allBookings
+        .where((b) => b["babysitterEmail"] == sitterEmail)
+        .toList();
   }
 
-  Future<void> updateBookingStatus(String bookingId, String status) async {
-    await _db
-        .collection('bookings')
-        .doc(bookingId)
-        .update({'status': status});
+  /// Return a single booking by bookingId
+  Map<String, String>? fetchBookingById(String bookingId) {
+    final booking = _allBookings.firstWhere(
+      (b) => b["bookingId"] == bookingId,
+      orElse: () => {},
+    );
+    return booking.isEmpty ? null : booking;
   }
 }

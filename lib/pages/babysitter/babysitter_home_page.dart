@@ -1,7 +1,9 @@
+// lib/pages/babysitter/babysitter_home_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/job_provider.dart';
-// Remove import to job_post.dart if you used it
+import '../../providers/booking_provider.dart';
 
 class BabysitterHomePage extends StatefulWidget {
   const BabysitterHomePage({Key? key}) : super(key: key);
@@ -12,33 +14,16 @@ class BabysitterHomePage extends StatefulWidget {
 
 class _BabysitterHomePageState extends State<BabysitterHomePage> {
   int _selectedIndex = 0;
-  // No longer a List<JobPost>, but a List of maps
-  List<Map<String, String>> _availableJobs = [];
-  late List<Widget> _pages;
+  late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
     _pages = [
-      JobsPage(availableJobs: _availableJobs),
-      const MyBookingsPage(),
+      const BabysitterJobsPage(),
+      const BabysitterBookingsPage(),
       const BabysitterProfilePage(),
     ];
-    _loadJobs();
-  }
-
-  Future<void> _loadJobs() async {
-    final jobProv = context.read<JobProvider>();
-    final jobs = await jobProv.fetchAvailableJobs(); // returns List<Map<String, String>>
-    setState(() {
-      // Now both sides match: jobs is a List<Map<String, String>>
-      _availableJobs = jobs;
-      _pages = [
-        JobsPage(availableJobs: _availableJobs),
-        const MyBookingsPage(),
-        const BabysitterProfilePage(),
-      ];
-    });
   }
 
   @override
@@ -59,63 +44,47 @@ class _BabysitterHomePageState extends State<BabysitterHomePage> {
   }
 }
 
-class JobsPage extends StatelessWidget {
-  final List<Map<String, String>> availableJobs;
-  const JobsPage({Key? key, required this.availableJobs}) : super(key: key);
+// Fake "Jobs" tab
+class BabysitterJobsPage extends StatelessWidget {
+  const BabysitterJobsPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    if (availableJobs.isEmpty) {
-      return const Center(child: Text("No jobs available."));
-    }
-    return ListView.builder(
-      itemCount: availableJobs.length,
-      itemBuilder: (ctx, i) {
-        final job = availableJobs[i];
-        final title = job["title"] ?? "Untitled";
-        final desc = job["description"] ?? "";
-        final rate = job["rate"] ?? "";
-        return Card(
-          margin: const EdgeInsets.all(12),
-          child: ListTile(
-            title: Text(title),
-            subtitle: Text("$desc • $rate"),
-            trailing: ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Applied to $title")),
-                );
-              },
-              child: const Text("Apply"),
-            ),
-          ),
-        );
-      },
-    );
+    return const Center(child: Text("Available Jobs (TODO)"));
   }
 }
 
-class MyBookingsPage extends StatelessWidget {
-  const MyBookingsPage({Key? key}) : super(key: key);
+class BabysitterBookingsPage extends StatelessWidget {
+  const BabysitterBookingsPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Fake data
-    final bookings = [
-      {"parent": "Doe Family", "time": "Tomorrow 4PM - 9PM"},
-    ];
-    if (bookings.isEmpty) {
+    final auth = context.watch<MyAuthProvider>();
+    final bookingProv = context.watch<BookingProvider>();
+
+    final sitterBookings = bookingProv.fetchBabysitterBookings(auth.email);
+    if (sitterBookings.isEmpty) {
       return const Center(child: Text("No bookings yet."));
     }
+
     return ListView.builder(
-      itemCount: bookings.length,
+      itemCount: sitterBookings.length,
       itemBuilder: (ctx, i) {
-        final b = bookings[i];
+        final b = sitterBookings[i];
+        final bookingId = b["bookingId"] ?? "";
+        final jobTitle = b["jobTitle"] ?? "Unknown Job";
+        final parent = b["parentEmail"] ?? "N/A";
+        final timeRange = "${b["startTime"]} - ${b["endTime"]}";
+        final status = b["status"] ?? "";
+
         return Card(
-          margin: const EdgeInsets.all(12),
+          margin: const EdgeInsets.all(8),
           child: ListTile(
-            title: Text("Parent: ${b["parent"]}"),
-            subtitle: Text(b["time"] ?? ""),
+            title: Text(jobTitle),
+            subtitle: Text("Parent: $parent\n$timeRange\nStatus: $status"),
+            onTap: () {
+              Navigator.pushNamed(context, '/bookingDetails', arguments: bookingId);
+            },
           ),
         );
       },
@@ -128,7 +97,25 @@ class BabysitterProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // show babysitter's profile or usage
-    return const Center(child: Text("Babysitter Profile (TODO)"));
+    final auth = context.watch<MyAuthProvider>();
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text("Logged in as: ${auth.email}"),
+          Text("Role: ${auth.role}"),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () async {
+              await context.read<MyAuthProvider>().fakeLogout();
+              if (context.mounted) {
+                Navigator.pushReplacementNamed(context, '/login');
+              }
+            },
+            child: const Text("Logout"),
+          ),
+        ],
+      ),
+    );
   }
 }
