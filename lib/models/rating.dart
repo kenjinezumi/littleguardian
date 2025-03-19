@@ -1,4 +1,5 @@
 // lib/models/rating.dart
+/// For reviews/ratings after job completion
 class RatingModel {
   final String ratingId;
   final String bookingId;

@@ -2,12 +2,14 @@
 class AppUser {
   final String uid;
   final String email;
-  final String role; // 'parent' or 'babysitter'
+  final String role;      // 'parent', 'babysitter', 'admin'
+  final bool isVerified;  // e.g. background check or ID verified
 
   AppUser({
     required this.uid,
     required this.email,
     required this.role,
+    this.isVerified = false,
   });
 
   factory AppUser.fromMap(String uid, Map<String, dynamic> data) {
@@ -15,6 +17,7 @@ class AppUser {
       uid: uid,
       email: data['email'] ?? '',
       role: data['role'] ?? 'parent',
+      isVerified: data['isVerified'] ?? false,
     );
   }
 
@@ -22,6 +25,7 @@ class AppUser {
     return {
       'email': email,
       'role': role,
+      'isVerified': isVerified,
     };
   }
 }

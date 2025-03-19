@@ -1,82 +1,74 @@
-// otp_page.dart
+// lib/pages/otp_page.dart
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart' show MyAuthProvider;
 
 class OtpPage extends StatefulWidget {
   @override
-  _OtpPageState createState() => _OtpPageState();
-
-  // We expect the verificationId to be passed in as an argument to this route
+  State<OtpPage> createState() => _OtpPageState();
 }
 
 class _OtpPageState extends State<OtpPage> {
-  final _otpController = TextEditingController();
-  String? verificationId; // will hold the verificationId from arguments
+  final _otpCtrl = TextEditingController();
+  bool _loading = false;
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Retrieve the verificationId passed from the previous screen
-    final args = ModalRoute.of(context)?.settings.arguments;
-    if (args is String) {
-      verificationId = args;
+  Future<void> _verifyOTP() async {
+    final smsCode = _otpCtrl.text.trim();
+    if (smsCode.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Enter OTP")));
+      return;
+    }
+    final auth = Provider.of<MyAuthProvider>(context, listen: false);
+    setState(() => _loading = true);
+    final res = await auth.verifyPhoneOTP(smsCode);
+    setState(() => _loading = false);
+
+    if (res == null) {
+      final role = auth.user?.role;
+      if (role == 'parent') {
+        Navigator.pushReplacementNamed(context, '/parentHome');
+      } else if (role == 'babysitter') {
+        Navigator.pushReplacementNamed(context, '/babysitterHome');
+      } else if (role == 'admin') {
+        Navigator.pushReplacementNamed(context, '/adminDashboard');
+      } else {
+        Navigator.pushReplacementNamed(context, '/parentHome');
+      }
+    } else {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Error: $res")));
     }
   }
 
   @override
   void dispose() {
-    _otpController.dispose();
+    _otpCtrl.dispose();
     super.dispose();
-  }
-
-  Future<void> _verifyCode() async {
-    final code = _otpController.text.trim();
-    if (verificationId == null || code.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Invalid code or verification ID.')),
-      );
-      return;
-    }
-    try {
-      // Create a PhoneAuthCredential with the code and verification ID :contentReference[oaicite:7]{index=7}
-      PhoneAuthCredential credential = PhoneAuthProvider.credential(
-        verificationId: verificationId!,
-        smsCode: code,
-      );
-      // Sign in the user with this credential
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      // If successful, remove all previous routes and go to Home
-      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
-    } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to verify OTP: ${e.message}')),
-      );
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('OTP Verification')),
+      appBar: AppBar(title: const Text("OTP Verification")),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Text('Enter the OTP sent to your phone:', style: TextStyle(fontSize: 16)),
-            SizedBox(height: 10),
+            const Text("Enter the OTP sent to your phone"),
+            const SizedBox(height: 10),
             TextField(
-              controller: _otpController,
+              controller: _otpCtrl,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: '6-digit code',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(border: OutlineInputBorder()),
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _verifyCode,
-              child: Text('Verify OTP'),
-            ),
+            const SizedBox(height: 20),
+            _loading
+                ? const CircularProgressIndicator()
+                : ElevatedButton(
+                    onPressed: _verifyOTP,
+                    child: const Text("Verify"),
+                  ),
           ],
         ),
       ),

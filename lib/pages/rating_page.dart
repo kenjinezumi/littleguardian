@@ -1,7 +1,7 @@
 // lib/pages/rating_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
+import '../../providers/auth_provider.dart' show MyAuthProvider;;
 import '../../providers/rating_provider.dart';
 import '../../models/booking.dart';
 import '../../models/rating.dart';

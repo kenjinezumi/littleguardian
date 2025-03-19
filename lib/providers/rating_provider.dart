@@ -9,11 +9,12 @@ class RatingProvider extends ChangeNotifier {
   Future<void> createRating(RatingModel rating) async {
     final docRef = _db.collection('ratings').doc(rating.ratingId);
     await docRef.set(rating.toMap());
-
-    // Update the booking doc with ratingId
+    // Update booking doc to link rating
     await _db
         .collection('bookings')
         .doc(rating.bookingId)
         .update({'ratingId': rating.ratingId, 'status': 'completed'});
   }
+
+  // Could also fetch ratings by babysitterId to compute overall rating, etc.
 }

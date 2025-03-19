@@ -1,68 +1,72 @@
 // lib/providers/auth_provider.dart
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_user.dart';
 
-class AuthProvider extends ChangeNotifier {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+class MyAuthProvider extends ChangeNotifier {
+  // If you DO NOT want real Firebase,
+  // remove or comment out these lines:
+  // final FirebaseAuth _auth = FirebaseAuth.instance;
+  // ...
+
   AppUser? _user;
   bool _isLoading = true;
-
-  AuthProvider() {
-    _init();
-  }
 
   AppUser? get user => _user;
   bool get isLoading => _isLoading;
 
-  void _init() {
-    _auth.authStateChanges().listen((firebaseUser) async {
-      if (firebaseUser == null) {
-        _user = null;
-      } else {
-        // Fetch user doc
-        final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(firebaseUser.uid)
-            .get();
-        if (doc.exists) {
-          _user = AppUser.fromMap(doc.id, doc.data() as Map<String, dynamic>);
-        }
-      }
-      _isLoading = false;
-      notifyListeners();
-    });
+  MyAuthProvider() {
+    _isLoading = false;
+    // not doing real Firebase init
   }
 
+  /// Fake sets a user for basic testing
+  void setFakeUser(AppUser fake) {
+    _user = fake;
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  /// Fake Register
   Future<String?> register(String email, String password, String role) async {
-    try {
-      final cred = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      final uid = cred.user!.uid;
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
-        'email': email,
-        'role': role,
-        'createdAt': DateTime.now().toIso8601String(),
-      });
-      return null; // success
-    } on FirebaseAuthException catch (e) {
-      return e.message;
-    }
+    // Do nothing, always "succeed"
+    return null;
   }
 
+  /// Fake Login
   Future<String?> login(String email, String password) async {
-    try {
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
-      return null;
-    } on FirebaseAuthException catch (e) {
-      return e.message;
-    }
+    // Do nothing, always "succeed"
+    return null;
   }
 
+  /// Fake Logout
   Future<void> logout() async {
-    await _auth.signOut();
+    _user = null;
+    notifyListeners();
+  }
+
+  // STUB Methods for phone auth
+  Future<void> requestPhoneOTP(String phoneNumber) async {
+    // Just print or do nothing
+    debugPrint("Fake phone OTP requested for $phoneNumber");
+    // no real phone logic
+  }
+
+  Future<String?> verifyPhoneOTP(String smsCode) async {
+    // Always "succeed"
+    debugPrint("Fake verify phone OTP: $smsCode");
+    // Return null = success
+    return null;
+  }
+
+  // Stub method for Google sign-in
+  Future<void> signInWithGoogle() async {
+    debugPrint("Fake Google login (stub).");
+    // For example, set a dummy user:
+    setFakeUser(AppUser(
+      uid: 'fakeGoogleUID',
+      email: 'fake.googleuser@example.com',
+      role: 'parent',
+      isVerified: true,
+    ));
   }
 }
