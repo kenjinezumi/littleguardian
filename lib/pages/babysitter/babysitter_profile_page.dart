@@ -10,6 +10,24 @@ import '../profile_edit_page.dart';
 class BabysitterProfilePage extends StatelessWidget {
   const BabysitterProfilePage({Key? key}) : super(key: key);
 
+  // This helper widget aligns a label and value in a row.
+  Widget _buildProfileRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Label
+        Text(
+          "$label: ",
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        // Value - wrapped in Expanded or Flexible if you want multi-line
+        Expanded(
+          child: Text(value),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<MyAuthProvider>();
@@ -38,10 +56,23 @@ class BabysitterProfilePage extends StatelessWidget {
               Text("Role: ${auth.role}"),
               const SizedBox(height: 20),
 
-              Text("Name: $name"),
-              Text("Phone: $phone"),
-              Text("Address: $address"),
-              Text("Bio: $bio"),
+              // Show an avatar, if you want:
+              CircleAvatar(
+                radius: 40,
+                backgroundImage: NetworkImage(avatarUrl.isEmpty
+                    ? "https://via.placeholder.com/150"
+                    : avatarUrl),
+              ),
+              const SizedBox(height: 20),
+
+              // Our aligned label-value rows:
+              _buildProfileRow("Name", name),
+              const SizedBox(height: 8),
+              _buildProfileRow("Phone", phone),
+              const SizedBox(height: 8),
+              _buildProfileRow("Address", address),
+              const SizedBox(height: 8),
+              _buildProfileRow("Bio", bio),
               const SizedBox(height: 20),
 
               ElevatedButton(
