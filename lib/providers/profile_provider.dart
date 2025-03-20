@@ -1,59 +1,66 @@
 // lib/providers/profile_provider.dart
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/child_profile.dart';
 
+/// For demonstration, we skip Firestore and use a simple in-memory map.
 class ProfileProvider extends ChangeNotifier {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
-
   bool _loading = false;
   bool get loading => _loading;
 
-  // Child profile list
-  List<ChildProfile> _children = [];
-  List<ChildProfile> get children => _children;
+  // Mock child profile logic (if you need it)
+  // For now, just store an empty list or in-memory data
+  // If you want ChildProfile, define it, but we keep it minimal
+  //List<ChildProfile> _children = [];
+  //List<ChildProfile> get children => _children;
 
-  /// Load child profiles for a parent from 'childProfiles' collection
-  Future<void> loadChildren(String parentId) async {
+  /// A local Map storing user data: userId -> Map
+  /// So we can simulate "fetchProfile" and "updateProfile"
+  final Map<String, Map<String, dynamic>> _userProfiles = {
+    "parentA@example.com": {
+      "role": "parent",
+      "name": "Parent A",
+      "phone": "555-1234",
+      "address": "123 Maple St",
+      "bio": "Loving parent of 2 kids",
+      "avatarUrl": "https://i.pravatar.cc/150?u=parentA",
+    },
+    "sitter1@example.com": {
+      "role": "babysitter",
+      "name": "Sitter One",
+      "phone": "555-9999",
+      "address": "456 Oak Lane",
+      "bio": "Experienced babysitter with CPR cert",
+      "avatarUrl": "https://i.pravatar.cc/150?u=sitter1",
+    },
+  };
+
+  /// Mock fetchProfile: returns a Future so we can mimic an async call
+  Future<Map<String, dynamic>?> fetchProfile(String userId, String role) async {
     _loading = true;
     notifyListeners();
-    final snapshot = await _db
-        .collection('childProfiles')
-        .where('parentId', isEqualTo: parentId)
-        .get();
-
-    _children = snapshot.docs.map((doc) {
-      return ChildProfile.fromMap(doc.id, doc.data());
-    }).toList();
+    await Future.delayed(const Duration(milliseconds: 300));
     _loading = false;
     notifyListeners();
+
+    return _userProfiles[userId]; // null if not found
   }
 
-  /// Add or Update a ChildProfile doc in Firestore
-  Future<void> addChildProfile(ChildProfile child) async {
-    final docRef = _db.collection('childProfiles').doc(child.childId);
-    await docRef.set(child.toMap(), SetOptions(merge: true));
-  }
-
-  /// Update parent's extra details (address, emergency contacts, etc.)
-  Future<void> updateParentDetails(String parentId, Map<String, dynamic> data) async {
-    await _db.collection('users').doc(parentId).update(data);
-  }
-
-  /// -----------------------------------------------
-  /// The "updateProfile" Method for user’s main data
-  /// -----------------------------------------------
-  /// Accepts a userId (likely the email or UID in Firestore)
-  /// plus a Map of fields to merge into the doc.
+  /// Mock updateProfile: merges fields into the local map
   Future<void> updateProfile({
     required String userId,
     required Map<String, dynamic> data,
   }) async {
-    // Merges these fields into Firestore doc at `users/{userId}`
-    await _db.collection('users').doc(userId).set(
-      data,
-      SetOptions(merge: true),
-    );
+    _loading = true;
+    notifyListeners();
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    final existing = _userProfiles[userId];
+    if (existing == null) {
+      _userProfiles[userId] = data;
+    } else {
+      existing.addAll(data); // merges
+    }
+
+    _loading = false;
     notifyListeners();
   }
 }

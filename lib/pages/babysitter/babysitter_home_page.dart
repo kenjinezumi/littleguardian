@@ -2,9 +2,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+// Providers
 import '../../providers/auth_provider.dart';
 import '../../providers/job_provider.dart';
 import '../../providers/booking_provider.dart';
+
+// Child Pages
+import 'babysitter_profile_page.dart'; // <--- Import from separate file
 
 class BabysitterHomePage extends StatefulWidget {
   const BabysitterHomePage({Key? key}) : super(key: key);
@@ -23,7 +28,7 @@ class _BabysitterHomePageState extends State<BabysitterHomePage> {
     _pages = [
       const BabysitterJobsPage(),
       const BabysitterBookingsPage(),
-      const BabysitterProfilePage(),
+      const BabysitterProfilePage(), // separate file
     ];
   }
 
@@ -45,7 +50,7 @@ class _BabysitterHomePageState extends State<BabysitterHomePage> {
   }
 }
 
-/// Toggling between list and map
+/// Tab 1: Jobs (list/map toggle)
 class BabysitterJobsPage extends StatefulWidget {
   const BabysitterJobsPage({Key? key}) : super(key: key);
 
@@ -55,27 +60,6 @@ class BabysitterJobsPage extends StatefulWidget {
 
 class _BabysitterJobsPageState extends State<BabysitterJobsPage> {
   bool _showMap = false;
-
-  // Add initState, build, etc.
-  @override
-  void initState() {
-    super.initState();
-    // ...
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // ...
-      ],
-    );
-  }
-}
-
-
-class BabysitterJobsPageState extends State<BabysitterJobsPage> {
-  bool _showMap = false; // toggle
   List<Map<String, String>> _availableJobs = [];
 
   @override
@@ -106,9 +90,7 @@ class BabysitterJobsPageState extends State<BabysitterJobsPage> {
             ),
             Switch(
               value: _showMap,
-              onChanged: (val) {
-                setState(() => _showMap = val);
-              },
+              onChanged: (val) => setState(() => _showMap = val),
             ),
             Text(_showMap ? "Map" : "List"),
           ],
@@ -138,6 +120,7 @@ class BabysitterJobsPageState extends State<BabysitterJobsPage> {
             subtitle: Text("$desc • $rate"),
             trailing: ElevatedButton(
               onPressed: () {
+                // e.g. "Apply" logic
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text("Applied to $title")),
                 );
@@ -159,15 +142,11 @@ class BabysitterJobsPageState extends State<BabysitterJobsPage> {
     for (final job in _availableJobs) {
       final latStr = job["lat"];
       final lngStr = job["lng"];
-      if (latStr == null || lngStr == null) {
-        // This job doesn't have location
-        continue;
-      }
+      if (latStr == null || lngStr == null) continue;
       final lat = double.tryParse(latStr);
       final lng = double.tryParse(lngStr);
-      if (lat == null || lng == null) {
-        continue;
-      }
+      if (lat == null || lng == null) continue;
+
       final jobId = job["jobId"] ?? "job${markers.length}";
       final title = job["title"] ?? "Job";
       final desc = job["description"] ?? "";
@@ -180,11 +159,9 @@ class BabysitterJobsPageState extends State<BabysitterJobsPage> {
       );
     }
 
-    // If no markers have lat/lng, show a fallback
     if (markers.isEmpty) {
       return const Center(child: Text("No jobs have location data."));
     }
-
     final firstPos = markers.first.position;
     return GoogleMap(
       initialCameraPosition: CameraPosition(target: firstPos, zoom: 12),
@@ -193,7 +170,7 @@ class BabysitterJobsPageState extends State<BabysitterJobsPage> {
   }
 }
 
-/// "My Bookings" tab
+/// Tab 2: Babysitter Bookings
 class BabysitterBookingsPage extends StatelessWidget {
   const BabysitterBookingsPage({Key? key}) : super(key: key);
 
@@ -206,30 +183,20 @@ class BabysitterBookingsPage extends StatelessWidget {
     if (sitterBookings.isEmpty) {
       return const Center(child: Text("No bookings yet."));
     }
-
     return ListView.builder(
       itemCount: sitterBookings.length,
       itemBuilder: (ctx, i) {
         final b = sitterBookings[i];
         final jobTitle = b["jobTitle"] ?? "Unknown Job";
+        final status = b["status"] ?? "requested";
         return Card(
+          margin: const EdgeInsets.all(8),
           child: ListTile(
             title: Text(jobTitle),
-            // ...
+            subtitle: Text("Status: $status"),
           ),
         );
       },
     );
-  }
-}
-
-/// "Profile" tab for babysitter
-class BabysitterProfilePage extends StatelessWidget {
-  const BabysitterProfilePage({Key? key}) : super(key: key);
-  // ...
-  @override
-  Widget build(BuildContext context) {
-    final auth = context.watch<MyAuthProvider>();
-    return Center(child: Text("Babysitter profile for ${auth.email}"));
   }
 }
