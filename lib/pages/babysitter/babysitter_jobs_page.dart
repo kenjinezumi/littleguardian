@@ -6,7 +6,6 @@ import '../../providers/job_provider.dart';
 import './babysitter_jobs_list_view.dart';
 import './babysitter_jobs_map_view.dart';
 
-/// The "Jobs" tab for babysitters, toggles between list and map.
 class BabysitterJobsPage extends StatefulWidget {
   const BabysitterJobsPage({Key? key}) : super(key: key);
 
@@ -27,16 +26,13 @@ class _BabysitterJobsPageState extends State<BabysitterJobsPage> {
   Future<void> _loadJobs() async {
     final jobProv = context.read<JobProvider>();
     final allJobs = await jobProv.fetchAllJobs();
-    setState(() {
-      _availableJobs = allJobs;
-    });
+    setState(() => _availableJobs = allJobs);
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Toggle row
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
