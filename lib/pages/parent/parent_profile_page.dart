@@ -2,28 +2,23 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../providers/auth_provider.dart';
+import '../../providers/auth_provider.dart';    // MyAuthProvider
 import '../../providers/profile_provider.dart';
 import '../../models/user_profile.dart';
 import '../profile_edit_page.dart';
+import '../settings_page.dart';  // The same settings page we created
 
 class ParentProfilePage extends StatelessWidget {
   const ParentProfilePage({Key? key}) : super(key: key);
 
-  /// Builds a single centered row: "Label: Value"
+  // Helper widget for label-value alignment
   Widget _buildProfileRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0), // small vertical gap
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center, // center row horizontally
-        children: [
-          Text(
-            "$label: ",
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Text(value),
-        ],
-      ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("$label: ", style: const TextStyle(fontWeight: FontWeight.bold)),
+        Expanded(child: Text(value)),
+      ],
     );
   }
 
@@ -35,12 +30,10 @@ class ParentProfilePage extends StatelessWidget {
     return FutureBuilder<Map<String, dynamic>?>(
       future: profileProv.fetchProfile(auth.email, auth.role),
       builder: (ctx, snapshot) {
-        final isLoading = snapshot.connectionState == ConnectionState.waiting;
-        if (isLoading) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // If no data, fallback to empty map
         final data = snapshot.data ?? <String, dynamic>{};
         final name = data["name"] ?? "";
         final phone = data["phone"] ?? "";
@@ -49,57 +42,75 @@ class ParentProfilePage extends StatelessWidget {
         final avatarUrl = data["avatarUrl"] ?? "";
 
         return SingleChildScrollView(
-          child: Center( // center the entire column
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                // No need for crossAxisAlignment here; Center + Row does the job
-                children: [
-                  Text("Logged in as: ${auth.email}"),
-                  Text("Role: ${auth.role}"),
-                  const SizedBox(height: 20),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Text("Logged in as: ${auth.email}"),
+              Text("Role: ${auth.role}"),
+              const SizedBox(height: 20),
 
-                  // Profile rows
-                  _buildProfileRow("Name", name),
-                  _buildProfileRow("Phone", phone),
-                  _buildProfileRow("Address", address),
-                  _buildProfileRow("Bio", bio),
-                  const SizedBox(height: 20),
-
-                  ElevatedButton(
-                    onPressed: () {
-                      final userProfile = UserProfile(
-                        email: auth.email,
-                        role: auth.role,
-                        name: name,
-                        phone: phone,
-                        address: address,
-                        bio: bio,
-                        avatarUrl: avatarUrl,
-                      );
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ProfileEditPage(profile: userProfile),
-                        ),
-                      );
-                    },
-                    child: const Text("Edit Profile"),
-                  ),
-                  const SizedBox(height: 20),
-
-                  ElevatedButton(
-                    onPressed: () async {
-                      await context.read<MyAuthProvider>().fakeLogout();
-                      if (context.mounted) {
-                        Navigator.pushReplacementNamed(context, '/login');
-                      }
-                    },
-                    child: const Text("Logout"),
-                  ),
-                ],
+              CircleAvatar(
+                radius: 40,
+                backgroundImage: NetworkImage(
+                  avatarUrl.isEmpty ? "https://via.placeholder.com/150" : avatarUrl,
+                ),
               ),
-            ),
+              const SizedBox(height: 20),
+
+              _buildProfileRow("Name", name),
+              const SizedBox(height: 8),
+              _buildProfileRow("Phone", phone),
+              const SizedBox(height: 8),
+              _buildProfileRow("Address", address),
+              const SizedBox(height: 8),
+              _buildProfileRow("Bio", bio),
+              const SizedBox(height: 20),
+
+              // Edit Profile button
+              ElevatedButton(
+                onPressed: () {
+                  final userProfile = UserProfile(
+                    email: auth.email,
+                    role: auth.role,
+                    name: name,
+                    phone: phone,
+                    address: address,
+                    bio: bio,
+                    avatarUrl: avatarUrl,
+                  );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => ProfileEditPage(profile: userProfile)),
+                  );
+                },
+                child: const Text("Edit Profile"),
+              ),
+              const SizedBox(height: 20),
+
+              // Logout
+              ElevatedButton(
+                onPressed: () async {
+                  await context.read<MyAuthProvider>().fakeLogout();
+                  if (context.mounted) {
+                    Navigator.pushReplacementNamed(context, '/login');
+                  }
+                },
+                child: const Text("Logout"),
+              ),
+              const SizedBox(height: 20),
+
+              // NEW: Settings Button
+              ElevatedButton.icon(
+                icon: const Icon(Icons.settings),
+                label: const Text("Settings"),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SettingsPage()),
+                  );
+                },
+              ),
+            ],
           ),
         );
       },
