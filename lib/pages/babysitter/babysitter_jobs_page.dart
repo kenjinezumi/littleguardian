@@ -1,7 +1,6 @@
 // lib/pages/babysitter/babysitter_jobs_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../providers/job_provider.dart';
 import './babysitter_jobs_list_view.dart';
 import './babysitter_jobs_map_view.dart';
@@ -33,20 +32,28 @@ class _BabysitterJobsPageState extends State<BabysitterJobsPage> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text("Jobs View:"),
-            ),
-            Switch(
-              value: _showMap,
-              onChanged: (val) => setState(() => _showMap = val),
-            ),
-            Text(_showMap ? "Map" : "List"),
-          ],
+        // Row for the toggle and text
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Jobs View:"),
+              Row(
+                children: [
+                  Switch(
+                    value: _showMap,
+                    onChanged: (val) => setState(() => _showMap = val),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(_showMap ? "Map" : "List"),
+                ],
+              ),
+            ],
+          ),
         ),
+
+        // The main content
         Expanded(
           child: _showMap
               ? BabysitterJobsMapView(jobs: _availableJobs)
